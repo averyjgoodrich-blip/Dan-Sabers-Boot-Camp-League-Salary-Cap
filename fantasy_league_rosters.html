@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>League Rosters</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #eef3ff 0%, #f8fafc 100%);
+            color: #1f2937;
+            margin: 0;
+            padding: 28px;
+        }
+        .report {
+            max-width: 1550px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+            text-align: center;
+        }
+        .summary-banner {
+            background: #0b3d91;
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: #0b3d91;
+            font-size: 30px;
+        }
+        h2 {
+            color: #0b3d91;
+            margin: 0 0 12px 0;
+            font-size: 20px;
+        }
+        .section-card {
+            background: #f9fbff;
+            border: 1px solid #d7e3ff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 22px;
+        }
+        details {
+            border: none;
+        }
+        summary {
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0b3d91;
+            list-style: none;
+        }
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        .team-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 14px;
+            background: #eef4ff;
+            border: 1px solid #d7e3ff;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .trade-mode-active .trade-watermark {
+            display: block;
+        }
+        .trade-mode-active .trade-delta-section {
+            display: block;
+        }
+        .trade-team-table-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .trade-team-table-wrapper {
+            margin-bottom: 12px;
+        }
+        .trade-team-table-title {
+            color: #0b3d91;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .trade-watermark {
+            display: none;
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: rgba(11, 61, 145, 0.35);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: none;
+            transform: rotate(8deg);
+        }
+        .trade-delta-section {
+            display: none;
+            margin: 0 0 16px 0;
+            padding: 12px;
+            border: 1px solid #d7e3ff;
+            border-radius: 10px;
+            background: #fbfdff;
+        }
+        .trade-delta-title {
+            color: #0b3d91;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .trade-team-table {
+            width: 100%;
+            font-size: 13px;
+        }
+        .trade-team-table .trade-added-row {
+            background: #dcfce7;
+        }
+        .trade-team-table .trade-added-row td {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .trade-team-table .trade-removed-row {
+            background: #fee2e2;
+        }
+        .trade-team-table .trade-removed-row td {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .trade-total-row td {
+            background: #fff7d6;
+            font-weight: 700;
+        }
+        .team-roster-section {
+            position: relative;
+        }
+        .team-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid #c7d8ff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        .team-filter input {
+            margin: 0;
+        }
+        .action-button {
+            background: #0b3d91;
+            color: #ffffff;
+            border: none;
+            border-radius: 999px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .action-button.hide-button {
+            background: #4b5563;
+        }
+        .team-summary-table-wrap {
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+        .team-summary-table {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            font-size: 12px;
+            border-collapse: collapse;
+        }
+        .team-summary-table th,
+        .team-summary-table td {
+            padding: 4px 6px;
+            text-align: left;
+            border-bottom: 1px solid #d7e3ff;
+        }
+        .team-summary-table th {
+            color: #0b3d91;
+            font-weight: 700;
+        }
+        .team-summary-table tbody tr:last-child td {
+            background: transparent;
+            font-weight: 400;
+        }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+        }
+        .team-card {
+            background: #ffffff;
+            border: 1px solid #d7e3ff;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .team-card h3 {
+            margin: 0 0 10px 0;
+            color: #0b3d91;
+            font-size: 16px;
+        }
+        .team-total-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff7d6;
+            border-top: 1px solid #d7e3ff;
+            margin-top: 10px;
+            padding: 8px 0 0 0;
+            font-weight: 700;
+        }
+        .trade-delta-section {
+            margin-top: 12px;
+            border-top: 1px dashed #c7d8ff;
+            padding-top: 10px;
+        }
+        .trade-delta-title {
+            color: #0b3d91;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .trade-delta-table {
+            font-size: 12px;
+        }
+        .trade-team-table .trade-added-row {
+            background: #dcfce7;
+        }
+        .trade-team-table .trade-added-row td {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .trade-team-table .trade-removed-row {
+            background: #fee2e2;
+        }
+        .trade-team-table .trade-removed-row td {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .draggable-row {
+            cursor: grab;
+            font-weight: 700;
+        }
+        .draggable-row td {
+            border-radius: 6px;
+            box-shadow: inset 0 0 0 1px #d7e3ff;
+            background: #ffffff;
+        }
+        .draggable-row:hover td {
+            background: #f0f7ff;
+        }
+        .draggable-row:active {
+            cursor: grabbing;
+            transform: scale(0.995);
+        }
+        .trade-help {
+            margin: 0 0 12px 0;
+            color: #475569;
+            font-size: 13px;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 7px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #e8f0ff;
+            font-weight: 700;
+            color: #133c7f;
+            white-space: nowrap;
+        }
+        tr:nth-child(even) {
+            background: #fbfdff;
+        }
+        tbody tr:last-child td {
+            background: #fff7d6;
+            font-weight: 700;
+        }
+        .top-players-table th:first-child,
+        .top-players-table td:first-child {
+            width: 70%;
+        }
+        .top-players-table th:last-child,
+        .top-players-table td:last-child {
+            width: 30%;
+            text-align: right;
+        }
+        .team-roster-table th {
+            white-space: nowrap;
+        }
+        .team-roster-table tbody tr td:first-child {
+            font-weight: 700;
+        }
+        .team-total-row td {
+            background: #fff7d6;
+            font-weight: 700;
+        }
+    </style>
+    <script>
+        let draggedRow = null;
+        let tradeModeEnabled = false;
+        const originalTeamGridMarkup = "\n        <div class=\"team-card\" data-team=\"Ostyn\">\n            <h3>Ostyn</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Anthony Richardson\" data-cost=\"0.5\"><td>Anthony Richardson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Daniel Jones\" data-cost=\"75.5\"><td>Daniel Jones</td><td>75.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Deshaun Watson\" data-cost=\"0.5\"><td>Deshaun Watson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Jacoby Brissett\" data-cost=\"77.0\"><td>Jacoby Brissett</td><td>77.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Jayden Daniels\" data-cost=\"8.5\"><td>Jayden Daniels</td><td>8.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Josh Allen\" data-cost=\"96.5\"><td>Josh Allen</td><td>96.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Michael Penix\" data-cost=\"15.0\"><td>Michael Penix</td><td>15.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Audric Estime\" data-cost=\"0.5\"><td>Audric Estime</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Breece Hall\" data-cost=\"75.0\"><td>Breece Hall</td><td>75.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Brian Robinson\" data-cost=\"0.5\"><td>Brian Robinson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Christian McCaffrey\" data-cost=\"100.0\"><td>Christian McCaffrey</td><td>100.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Jeremiyah Love\" data-cost=\"0.5\"><td>Jeremiyah Love</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Jonathon Brooks\" data-cost=\"0.5\"><td>Jonathon Brooks</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Omarion Hampton\" data-cost=\"30.0\"><td>Omarion Hampton</td><td>30.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Saquon Barkley\" data-cost=\"80.5\"><td>Saquon Barkley</td><td>80.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Tyjae Spears\" data-cost=\"8.0\"><td>Tyjae Spears</td><td>8.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Zach Charbonnet\" data-cost=\"54.0\"><td>Zach Charbonnet</td><td>54.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Chris Olave\" data-cost=\"85.5\"><td>Chris Olave</td><td>85.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Cooper Kupp\" data-cost=\"10.0\"><td>Cooper Kupp</td><td>10.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Denzel Boston\" data-cost=\"0.5\"><td>Denzel Boston</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Drake London\" data-cost=\"63.5\"><td>Drake London</td><td>63.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Garrett Wilson\" data-cost=\"0.5\"><td>Garrett Wilson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Chig Okonkwo\" data-cost=\"37.0\"><td>Chig Okonkwo</td><td>37.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"George Kittle\" data-cost=\"55.0\"><td>George Kittle</td><td>55.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Kenyon Sadiq\" data-cost=\"0.5\"><td>Kenyon Sadiq</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Carson Beck (Taxi)\" data-cost=\"\"><td>Carson Beck (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Jalen Milroe (Taxi)\" data-cost=\"\"><td>Jalen Milroe (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Woody Marks (Taxi)\" data-cost=\"\"><td>Woody Marks (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Cyrus Allen (Taxi)\" data-cost=\"\"><td>Cyrus Allen (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"De&#x27;Zhaun Stribling (Taxi)\" data-cost=\"\"><td>De&#x27;Zhaun Stribling (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Pat Bryant (Taxi)\" data-cost=\"\"><td>Pat Bryant (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Tetairoa McMillan (Taxi)\" data-cost=\"\"><td>Tetairoa McMillan (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Tez Johnson (Taxi)\" data-cost=\"\"><td>Tez Johnson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Eli Raridon (Taxi)\" data-cost=\"\"><td>Eli Raridon (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Ostyn\" data-player=\"Elijah Arroyo (Taxi)\" data-cost=\"\"><td>Elijah Arroyo (Taxi)</td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>875.5</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"Gbessie\">\n            <h3>Gbessie</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Caleb Williams\" data-cost=\"92.0\"><td>Caleb Williams</td><td>92.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Justin Herbert\" data-cost=\"88.5\"><td>Justin Herbert</td><td>88.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Kirk Cousins\" data-cost=\"1.5\"><td>Kirk Cousins</td><td>1.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Shedeur Sanders\" data-cost=\"0.5\"><td>Shedeur Sanders</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Chuba Hubbard\" data-cost=\"39.0\"><td>Chuba Hubbard</td><td>39.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Jaylen Warren\" data-cost=\"81.5\"><td>Jaylen Warren</td><td>81.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Kenneth Walker\" data-cost=\"60.5\"><td>Kenneth Walker</td><td>60.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Alec Pierce\" data-cost=\"56.5\"><td>Alec Pierce</td><td>56.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"DJ Moore\" data-cost=\"47.5\"><td>DJ Moore</td><td>47.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Davante Adams\" data-cost=\"68.5\"><td>Davante Adams</td><td>68.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"George Pickens\" data-cost=\"91.0\"><td>George Pickens</td><td>91.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"KaVontae Turpin\" data-cost=\"84.5\"><td>KaVontae Turpin</td><td>84.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Kalif Raymond\" data-cost=\"1.0\"><td>Kalif Raymond</td><td>1.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Khalil Shakir\" data-cost=\"51.0\"><td>Khalil Shakir</td><td>51.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Parker Washington\" data-cost=\"71.0\"><td>Parker Washington</td><td>71.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Rashid Shaheed\" data-cost=\"74.5\"><td>Rashid Shaheed</td><td>74.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Tyreek Hill\" data-cost=\"0.5\"><td>Tyreek Hill</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Cole Kmet\" data-cost=\"0.5\"><td>Cole Kmet</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Colston Loveland\" data-cost=\"57.5\"><td>Colston Loveland</td><td>57.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Greg Dulcich\" data-cost=\"0.5\"><td>Greg Dulcich</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"T.J. Hockenson\" data-cost=\"25.0\"><td>T.J. Hockenson</td><td>25.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Kaytron Allen (Taxi)\" data-cost=\"\"><td>Kaytron Allen (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Trevor Etienne (Taxi)\" data-cost=\"\"><td>Trevor Etienne (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Aaron Anderson (Taxi)\" data-cost=\"\"><td>Aaron Anderson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Jahdae Walker (Taxi)\" data-cost=\"\"><td>Jahdae Walker (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Jeff Caldwell (Taxi)\" data-cost=\"\"><td>Jeff Caldwell (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Kevin Coleman (Taxi)\" data-cost=\"\"><td>Kevin Coleman (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Travis Hunter (Taxi)\" data-cost=\"\"><td>Travis Hunter (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Zavion Thomas (Taxi)\" data-cost=\"\"><td>Zavion Thomas (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Sam Roush (Taxi)\" data-cost=\"\"><td>Sam Roush (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"Will Kacmarek (Taxi)\" data-cost=\"\"><td>Will Kacmarek (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gbessie\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>993.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"r1cky\">\n            <h3>r1cky</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Bryce Young\" data-cost=\"68.0\"><td>Bryce Young</td><td>68.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"C.J. Stroud\" data-cost=\"65.5\"><td>C.J. Stroud</td><td>65.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Jordan Love\" data-cost=\"78.5\"><td>Jordan Love</td><td>78.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Ashton Jeanty\" data-cost=\"82.5\"><td>Ashton Jeanty</td><td>82.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Javonte Williams\" data-cost=\"84.0\"><td>Javonte Williams</td><td>84.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"RJ Harvey\" data-cost=\"78.0\"><td>RJ Harvey</td><td>78.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Brian Thomas\" data-cost=\"29.5\"><td>Brian Thomas</td><td>29.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Chimere Dike\" data-cost=\"89.5\"><td>Chimere Dike</td><td>89.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Ja&#x27;Marr Chase\" data-cost=\"93.5\"><td>Ja&#x27;Marr Chase</td><td>93.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Jalen Coker\" data-cost=\"0.5\"><td>Jalen Coker</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Jalen Nailor\" data-cost=\"0.5\"><td>Jalen Nailor</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Jameson Williams\" data-cost=\"76.0\"><td>Jameson Williams</td><td>76.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Marvin Mims\" data-cost=\"57.0\"><td>Marvin Mims</td><td>57.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Matthew Golden\" data-cost=\"0.5\"><td>Matthew Golden</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Quentin Johnston\" data-cost=\"45.5\"><td>Quentin Johnston</td><td>45.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Dalton Kincaid\" data-cost=\"32.5\"><td>Dalton Kincaid</td><td>32.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Kyle Pitts\" data-cost=\"83.5\"><td>Kyle Pitts</td><td>83.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Oscar Delp\" data-cost=\"0.5\"><td>Oscar Delp</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Theo Johnson\" data-cost=\"34.5\"><td>Theo Johnson</td><td>34.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Dylan Sampson (Taxi)\" data-cost=\"\"><td>Dylan Sampson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Chris Brazzell (Taxi)\" data-cost=\"\"><td>Chris Brazzell (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Isaac TeSlaa (Taxi)\" data-cost=\"\"><td>Isaac TeSlaa (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Ja&#x27;Kobi Lane (Taxi)\" data-cost=\"\"><td>Ja&#x27;Kobi Lane (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"KC Concepcion (Taxi)\" data-cost=\"\"><td>KC Concepcion (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Luther Burden (Taxi)\" data-cost=\"\"><td>Luther Burden (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Tre&#x27; Harris (Taxi)\" data-cost=\"\"><td>Tre&#x27; Harris (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Zachariah Branch (Taxi)\" data-cost=\"\"><td>Zachariah Branch (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Justin Joly (Taxi)\" data-cost=\"\"><td>Justin Joly (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"Terrance Ferguson (Taxi)\" data-cost=\"\"><td>Terrance Ferguson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"r1cky\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>1000.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"CalixsCrew\">\n            <h3>CalixsCrew</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Kyler Murray\" data-cost=\"0.5\"><td>Kyler Murray</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Lamar Jackson\" data-cost=\"64.5\"><td>Lamar Jackson</td><td>64.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Trevor Lawrence\" data-cost=\"95.0\"><td>Trevor Lawrence</td><td>95.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Bijan Robinson\" data-cost=\"99.5\"><td>Bijan Robinson</td><td>99.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"David Montgomery\" data-cost=\"48.5\"><td>David Montgomery</td><td>48.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"J.K. Dobbins\" data-cost=\"17.0\"><td>J.K. Dobbins</td><td>17.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Jonathan Taylor\" data-cost=\"98.0\"><td>Jonathan Taylor</td><td>98.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Justice Hill\" data-cost=\"0.5\"><td>Justice Hill</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Rico Dowdle\" data-cost=\"82.0\"><td>Rico Dowdle</td><td>82.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Seth McGowan\" data-cost=\"0.5\"><td>Seth McGowan</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"A.J. Brown\" data-cost=\"73.0\"><td>A.J. Brown</td><td>73.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Colbie Young\" data-cost=\"0.5\"><td>Colbie Young</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"DK Metcalf\" data-cost=\"56.0\"><td>DK Metcalf</td><td>56.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Dontayvion Wicks\" data-cost=\"0.5\"><td>Dontayvion Wicks</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"John Metchie\" data-cost=\"0.5\"><td>John Metchie</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Malik Washington\" data-cost=\"70.5\"><td>Malik Washington</td><td>70.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Romeo Doubs\" data-cost=\"50.0\"><td>Romeo Doubs</td><td>50.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Ryan Flournoy\" data-cost=\"14.0\"><td>Ryan Flournoy</td><td>14.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Tee Higgins\" data-cost=\"62.5\"><td>Tee Higgins</td><td>62.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Treylon Burks\" data-cost=\"0.5\"><td>Treylon Burks</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Brock Bowers\" data-cost=\"60.0\"><td>Brock Bowers</td><td>60.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Michael Mayer\" data-cost=\"0.5\"><td>Michael Mayer</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Sam LaPorta\" data-cost=\"20.0\"><td>Sam LaPorta</td><td>20.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Jacory Croskey-Merritt (Taxi)\" data-cost=\"\"><td>Jacory Croskey-Merritt (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Brenen Thompson (Taxi)\" data-cost=\"\"><td>Brenen Thompson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Deion Burks (Taxi)\" data-cost=\"\"><td>Deion Burks (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"Michael Trigg (Taxi)\" data-cost=\"\"><td>Michael Trigg (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"CalixsCrew\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>914.5</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"Jwilly0925\">\n            <h3>Jwilly0925</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Jaxson Dart\" data-cost=\"79.5\"><td>Jaxson Dart</td><td>79.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Joe Burrow\" data-cost=\"22.5\"><td>Joe Burrow</td><td>22.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Mac Jones\" data-cost=\"26.0\"><td>Mac Jones</td><td>26.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Cam Skattebo\" data-cost=\"24.0\"><td>Cam Skattebo</td><td>24.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Chase Brown\" data-cost=\"88.0\"><td>Chase Brown</td><td>88.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Kaelon Black\" data-cost=\"0.5\"><td>Kaelon Black</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"MarShawn Lloyd\" data-cost=\"0.5\"><td>MarShawn Lloyd</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Mike Washington\" data-cost=\"0.5\"><td>Mike Washington</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Ollie Gordon\" data-cost=\"0.5\"><td>Ollie Gordon</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Amon-Ra St. Brown\" data-cost=\"94.0\"><td>Amon-Ra St. Brown</td><td>94.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Antonio Williams\" data-cost=\"0.5\"><td>Antonio Williams</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Bryce Lance\" data-cost=\"0.5\"><td>Bryce Lance</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Carnell Tate\" data-cost=\"0.5\"><td>Carnell Tate</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Jayden Higgins\" data-cost=\"21.5\"><td>Jayden Higgins</td><td>21.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Jayden Reed\" data-cost=\"0.5\"><td>Jayden Reed</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Malik Nabers\" data-cost=\"0.5\"><td>Malik Nabers</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Savion Williams\" data-cost=\"0.5\"><td>Savion Williams</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Harold Fannin\" data-cost=\"65.0\"><td>Harold Fannin</td><td>65.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Luke Musgrave\" data-cost=\"0.5\"><td>Luke Musgrave</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Noah Gray\" data-cost=\"0.5\"><td>Noah Gray</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"Tucker Kraft\" data-cost=\"24.5\"><td>Tucker Kraft</td><td>24.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Jwilly0925\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>451.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"Wain\">\n            <h3>Wain</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Baker Mayfield\" data-cost=\"86.5\"><td>Baker Mayfield</td><td>86.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Cam Ward\" data-cost=\"54.5\"><td>Cam Ward</td><td>54.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Drake Maye\" data-cost=\"96.0\"><td>Drake Maye</td><td>96.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Jared Goff\" data-cost=\"89.0\"><td>Jared Goff</td><td>89.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Alvin Kamara\" data-cost=\"2.5\"><td>Alvin Kamara</td><td>2.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Chris Rodriguez\" data-cost=\"0.5\"><td>Chris Rodriguez</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"De&#x27;Von Achane\" data-cost=\"94.5\"><td>De&#x27;Von Achane</td><td>94.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Devin Neal\" data-cost=\"0.5\"><td>Devin Neal</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Isaac Guerendo\" data-cost=\"0.5\"><td>Isaac Guerendo</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Kimani Vidal\" data-cost=\"34.0\"><td>Kimani Vidal</td><td>34.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Quinshon Judkins\" data-cost=\"52.0\"><td>Quinshon Judkins</td><td>52.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Courtland Sutton\" data-cost=\"72.5\"><td>Courtland Sutton</td><td>72.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Kayshon Boutte\" data-cost=\"18.5\"><td>Kayshon Boutte</td><td>18.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Michael Pittman\" data-cost=\"59.5\"><td>Michael Pittman</td><td>59.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Mike Evans\" data-cost=\"0.5\"><td>Mike Evans</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Rashee Rice\" data-cost=\"38.0\"><td>Rashee Rice</td><td>38.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Ricky Pearsall\" data-cost=\"0.5\"><td>Ricky Pearsall</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Troy Franklin\" data-cost=\"49.0\"><td>Troy Franklin</td><td>49.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Zay Flowers\" data-cost=\"83.0\"><td>Zay Flowers</td><td>83.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"AJ Barner\" data-cost=\"46.5\"><td>AJ Barner</td><td>46.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Pat Freiermuth\" data-cost=\"23.5\"><td>Pat Freiermuth</td><td>23.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Trey McBride\" data-cost=\"97.0\"><td>Trey McBride</td><td>97.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Drew Allar (Taxi)\" data-cost=\"\"><td>Drew Allar (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Haynes King (Taxi)\" data-cost=\"\"><td>Haynes King (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"DJ Giddens (Taxi)\" data-cost=\"\"><td>DJ Giddens (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Nicholas Singleton (Taxi)\" data-cost=\"\"><td>Nicholas Singleton (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Chris Bell (Taxi)\" data-cost=\"\"><td>Chris Bell (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Elic Ayomanor (Taxi)\" data-cost=\"\"><td>Elic Ayomanor (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Jack Bech (Taxi)\" data-cost=\"\"><td>Jack Bech (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Ted Hurst (Taxi)\" data-cost=\"\"><td>Ted Hurst (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Eli Stowers (Taxi)\" data-cost=\"\"><td>Eli Stowers (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"Mason Taylor (Taxi)\" data-cost=\"\"><td>Mason Taylor (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Wain\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>999.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"BrennanKrause\">\n            <h3>BrennanKrause</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Dak Prescott\" data-cost=\"92.5\"><td>Dak Prescott</td><td>92.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jalen Hurts\" data-cost=\"90.0\"><td>Jalen Hurts</td><td>90.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Joe Milton\" data-cost=\"0.5\"><td>Joe Milton</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Malik Willis\" data-cost=\"0.5\"><td>Malik Willis</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Blake Corum\" data-cost=\"44.0\"><td>Blake Corum</td><td>44.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Bucky Irving\" data-cost=\"31.0\"><td>Bucky Irving</td><td>31.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Derrick Henry\" data-cost=\"90.5\"><td>Derrick Henry</td><td>90.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jordan Mason\" data-cost=\"26.5\"><td>Jordan Mason</td><td>26.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Adonai Mitchell\" data-cost=\"0.5\"><td>Adonai Mitchell</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Caleb Douglas\" data-cost=\"0.5\"><td>Caleb Douglas</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"CeeDee Lamb\" data-cost=\"66.0\"><td>CeeDee Lamb</td><td>66.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Deebo Samuel\" data-cost=\"71.5\"><td>Deebo Samuel</td><td>71.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Emeka Egbuka\" data-cost=\"58.5\"><td>Emeka Egbuka</td><td>58.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jalen Tolbert\" data-cost=\"0.5\"><td>Jalen Tolbert</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jauan Jennings\" data-cost=\"47.0\"><td>Jauan Jennings</td><td>47.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jaxon Smith-Njigba\" data-cost=\"98.5\"><td>Jaxon Smith-Njigba</td><td>98.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jaylen Waddle\" data-cost=\"59.0\"><td>Jaylen Waddle</td><td>59.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jordyn Tyson\" data-cost=\"0.5\"><td>Jordyn Tyson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Rome Odunze\" data-cost=\"37.5\"><td>Rome Odunze</td><td>37.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Terry McLaurin\" data-cost=\"12.0\"><td>Terry McLaurin</td><td>12.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Dallas Goedert\" data-cost=\"61.5\"><td>Dallas Goedert</td><td>61.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"David Njoku\" data-cost=\"0.5\"><td>David Njoku</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Ja&#x27;Tavion Sanders\" data-cost=\"0.5\"><td>Ja&#x27;Tavion Sanders</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jake Ferguson\" data-cost=\"66.5\"><td>Jake Ferguson</td><td>66.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Matt Hibner\" data-cost=\"0.5\"><td>Matt Hibner</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Taylen Green (Taxi)\" data-cost=\"\"><td>Taylen Green (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Will Howard (Taxi)\" data-cost=\"\"><td>Will Howard (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"J&#x27;Mari Taylor (Taxi)\" data-cost=\"\"><td>J&#x27;Mari Taylor (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jaydn Ott (Taxi)\" data-cost=\"\"><td>Jaydn Ott (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Kaleb Johnson (Taxi)\" data-cost=\"\"><td>Kaleb Johnson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Tahj Brooks (Taxi)\" data-cost=\"\"><td>Tahj Brooks (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Dont&#x27;e Thornton (Taxi)\" data-cost=\"\"><td>Dont&#x27;e Thornton (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Isaiah Bond (Taxi)\" data-cost=\"\"><td>Isaiah Bond (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Jimmy Horn (Taxi)\" data-cost=\"\"><td>Jimmy Horn (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"BrennanKrause\" data-player=\"Kaden Wetjen (Taxi)\" data-cost=\"\"><td>Kaden Wetjen (Taxi)</td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>957.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"AveryGoodrich\">\n            <h3>AveryGoodrich</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"J.J. McCarthy\" data-cost=\"16.5\"><td>J.J. McCarthy</td><td>16.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Matthew Stafford\" data-cost=\"95.5\"><td>Matthew Stafford</td><td>95.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Sam Darnold\" data-cost=\"81.0\"><td>Sam Darnold</td><td>81.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Tyler Shough\" data-cost=\"43.5\"><td>Tyler Shough</td><td>43.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Aaron Jones\" data-cost=\"15.5\"><td>Aaron Jones</td><td>15.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"D&#x27;Andre Swift\" data-cost=\"80.0\"><td>D&#x27;Andre Swift</td><td>80.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Demond Claiborne\" data-cost=\"0.5\"><td>Demond Claiborne</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"James Cook\" data-cost=\"93.0\"><td>James Cook</td><td>93.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Josh Jacobs\" data-cost=\"79.0\"><td>Josh Jacobs</td><td>79.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"TreVeyon Henderson\" data-cost=\"76.5\"><td>TreVeyon Henderson</td><td>76.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Will Shipley\" data-cost=\"0.5\"><td>Will Shipley</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Christian Watson\" data-cost=\"25.5\"><td>Christian Watson</td><td>25.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Darnell Mooney\" data-cost=\"0.5\"><td>Darnell Mooney</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Jahan Dotson\" data-cost=\"0.5\"><td>Jahan Dotson</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Jalen McMillan\" data-cost=\"0.5\"><td>Jalen McMillan</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Justin Jefferson\" data-cost=\"63.0\"><td>Justin Jefferson</td><td>63.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Keon Coleman\" data-cost=\"3.5\"><td>Keon Coleman</td><td>3.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Michael Wilson\" data-cost=\"73.5\"><td>Michael Wilson</td><td>73.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Puka Nacua\" data-cost=\"99.0\"><td>Puka Nacua</td><td>99.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Tank Dell\" data-cost=\"0.5\"><td>Tank Dell</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Brenton Strange\" data-cost=\"28.0\"><td>Brenton Strange</td><td>28.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Gunnar Helm\" data-cost=\"5.0\"><td>Gunnar Helm</td><td>5.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Oronde Gadsden\" data-cost=\"41.5\"><td>Oronde Gadsden</td><td>41.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Travis Kelce\" data-cost=\"74.0\"><td>Travis Kelce</td><td>74.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Garrett Nussmeier (Taxi)\" data-cost=\"\"><td>Garrett Nussmeier (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Ty Simpson (Taxi)\" data-cost=\"\"><td>Ty Simpson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Emmett Johnson (Taxi)\" data-cost=\"\"><td>Emmett Johnson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Jaydon Blue (Taxi)\" data-cost=\"\"><td>Jaydon Blue (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Jonah Coleman (Taxi)\" data-cost=\"\"><td>Jonah Coleman (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Makai Lemon (Taxi)\" data-cost=\"\"><td>Makai Lemon (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Malachi Fields (Taxi)\" data-cost=\"\"><td>Malachi Fields (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Skyler Bell (Taxi)\" data-cost=\"\"><td>Skyler Bell (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"Jack Endries (Taxi)\" data-cost=\"\"><td>Jack Endries (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"AveryGoodrich\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>996.5</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"EthanGoodrich\">\n            <h3>EthanGoodrich</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Bo Nix\" data-cost=\"91.5\"><td>Bo Nix</td><td>91.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Brock Purdy\" data-cost=\"50.5\"><td>Brock Purdy</td><td>50.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Geno Smith\" data-cost=\"49.5\"><td>Geno Smith</td><td>49.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Riley Leonard\" data-cost=\"0.5\"><td>Riley Leonard</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Braelon Allen\" data-cost=\"0.5\"><td>Braelon Allen</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Devin Singletary\" data-cost=\"28.5\"><td>Devin Singletary</td><td>28.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Isiah Pacheco\" data-cost=\"0.5\"><td>Isiah Pacheco</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Jadarian Price\" data-cost=\"0.5\"><td>Jadarian Price</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Kenny Gainwell\" data-cost=\"87.0\"><td>Kenny Gainwell</td><td>87.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Rachaad White\" data-cost=\"36.5\"><td>Rachaad White</td><td>36.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Travis Etienne\" data-cost=\"85.0\"><td>Travis Etienne</td><td>85.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Tyler Allgeier\" data-cost=\"21.0\"><td>Tyler Allgeier</td><td>21.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Tyrone Tracy\" data-cost=\"52.5\"><td>Tyrone Tracy</td><td>52.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Brandon Aiyuk\" data-cost=\"0.5\"><td>Brandon Aiyuk</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"DeVonta Smith\" data-cost=\"62.0\"><td>DeVonta Smith</td><td>62.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Devontez Walker\" data-cost=\"0.5\"><td>Devontez Walker</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Jakobi Meyers\" data-cost=\"51.5\"><td>Jakobi Meyers</td><td>51.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Jordan Addison\" data-cost=\"29.0\"><td>Jordan Addison</td><td>29.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Ladd McConkey\" data-cost=\"53.0\"><td>Ladd McConkey</td><td>53.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Stefon Diggs\" data-cost=\"69.0\"><td>Stefon Diggs</td><td>69.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Tre Tucker\" data-cost=\"45.0\"><td>Tre Tucker</td><td>45.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Wan&#x27;Dale Robinson\" data-cost=\"72.0\"><td>Wan&#x27;Dale Robinson</td><td>72.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Xavier Worthy\" data-cost=\"7.0\"><td>Xavier Worthy</td><td>7.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Dalton Schultz\" data-cost=\"64.0\"><td>Dalton Schultz</td><td>64.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Isaiah Likely\" data-cost=\"0.5\"><td>Isaiah Likely</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Cade Klubnik (Taxi)\" data-cost=\"\"><td>Cade Klubnik (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Mark Gronowski (Taxi)\" data-cost=\"\"><td>Mark Gronowski (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Max Brosmer (Taxi)\" data-cost=\"\"><td>Max Brosmer (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Bhayshul Tuten (Taxi)\" data-cost=\"\"><td>Bhayshul Tuten (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Germie Bernard (Taxi)\" data-cost=\"\"><td>Germie Bernard (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Jaylin Lane (Taxi)\" data-cost=\"\"><td>Jaylin Lane (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"O&#x27;Mega Blake (Taxi)\" data-cost=\"\"><td>O&#x27;Mega Blake (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Tai Felton (Taxi)\" data-cost=\"\"><td>Tai Felton (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"Nate Boerkircher (Taxi)\" data-cost=\"\"><td>Nate Boerkircher (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"EthanGoodrich\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>958.0</span>\n            </div>\n        </div>\n        \n\n        <div class=\"team-card\" data-team=\"Gorris\">\n            <h3>Gorris</h3>\n            <table class=\"team-roster-table\">\n                <thead>\n                    <tr>\n                        <th>Player</th>\n                        <th>Cost</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Fernando Mendoza\" data-cost=\"0.5\"><td>Fernando Mendoza</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Justin Fields\" data-cost=\"32.0\"><td>Justin Fields</td><td>32.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Patrick Mahomes\" data-cost=\"87.5\"><td>Patrick Mahomes</td><td>87.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Spencer Rattler\" data-cost=\"2.0\"><td>Spencer Rattler</td><td>2.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Tua Tagovailoa\" data-cost=\"43.0\"><td>Tua Tagovailoa</td><td>43.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Jahmyr Gibbs\" data-cost=\"97.5\"><td>Jahmyr Gibbs</td><td>97.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Kyle Monangai\" data-cost=\"41.0\"><td>Kyle Monangai</td><td>41.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Kyren Williams\" data-cost=\"86.0\"><td>Kyren Williams</td><td>86.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Rhamondre Stevenson\" data-cost=\"53.5\"><td>Rhamondre Stevenson</td><td>53.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Tony Pollard\" data-cost=\"58.0\"><td>Tony Pollard</td><td>58.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Andrei Iosivas\" data-cost=\"0.5\"><td>Andrei Iosivas</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Chris Godwin\" data-cost=\"0.5\"><td>Chris Godwin</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Jerry Jeudy\" data-cost=\"18.0\"><td>Jerry Jeudy</td><td>18.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Josh Downs\" data-cost=\"31.5\"><td>Josh Downs</td><td>31.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Marvin Harrison\" data-cost=\"23.0\"><td>Marvin Harrison</td><td>23.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Nico Collins\" data-cost=\"77.5\"><td>Nico Collins</td><td>77.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Tory Horton\" data-cost=\"0.5\"><td>Tory Horton</td><td>0.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Cade Otton\" data-cost=\"35.0\"><td>Cade Otton</td><td>35.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Hunter Henry\" data-cost=\"61.0\"><td>Hunter Henry</td><td>61.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Juwan Johnson\" data-cost=\"67.0\"><td>Juwan Johnson</td><td>67.0</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Tyler Warren\" data-cost=\"69.5\"><td>Tyler Warren</td><td>69.5</td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Taxi\" data-cost=\"\"><td>Taxi</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Quinn Ewers (Taxi)\" data-cost=\"\"><td>Quinn Ewers (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Adam Randall (Taxi)\" data-cost=\"\"><td>Adam Randall (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Elijah Sarratt (Taxi)\" data-cost=\"\"><td>Elijah Sarratt (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Malik Benson (Taxi)\" data-cost=\"\"><td>Malik Benson (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Omar Cooper (Taxi)\" data-cost=\"\"><td>Omar Cooper (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Jared Wiley (Taxi)\" data-cost=\"\"><td>Jared Wiley (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"Max Klare (Taxi)\" data-cost=\"\"><td>Max Klare (Taxi)</td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr><tr draggable=\"true\" class=\"draggable-row\" data-team=\"Gorris\" data-player=\"\" data-cost=\"\"><td></td><td></td></tr>\n                </tbody>\n            </table>\n            <div class=\"team-total-footer\">\n                <span>Team Total</span>\n                <span>885.0</span>\n            </div>\n        </div>\n        ";
+
+        function recalculateTeamTotals() {
+            document.querySelectorAll('.team-card').forEach(card => {
+                const tbody = card.querySelector('tbody');
+                const totalFooter = card.querySelector('.team-total-footer span:last-child');
+                let total = 0;
+
+                tbody.querySelectorAll('tr').forEach(row => {
+                    const costCell = row.querySelector('td:last-child');
+                    const costValue = Number.parseFloat(costCell.textContent.trim());
+                    if (!Number.isNaN(costValue)) {
+                        total += costValue;
+                    }
+                });
+
+                if (totalFooter) {
+                    totalFooter.textContent = total.toFixed(2);
+                }
+            });
+        }
+
+        function syncTeamCards() {
+            const teamToggles = document.querySelectorAll('.team-toggle');
+            const selectedTeams = new Set(
+                Array.from(teamToggles)
+                    .filter(toggle => toggle.checked)
+                    .map(toggle => toggle.dataset.team)
+            );
+
+            document.querySelectorAll('.team-card').forEach(card => {
+                const teamName = card.dataset.team;
+                card.style.display = selectedTeams.has(teamName) ? 'block' : 'none';
+            });
+
+            document.querySelectorAll('.trade-team-table-wrapper').forEach(wrapper => {
+                const teamName = wrapper.dataset.team;
+                wrapper.style.display = selectedTeams.has(teamName) ? 'block' : 'none';
+            });
+        }
+
+        function resetTradeMode() {
+            const teamGrid = document.querySelector('.team-grid');
+            teamGrid.innerHTML = originalTeamGridMarkup;
+            syncTeamCards();
+            recalculateTeamTotals();
+        }
+
+        function updateTradeTotal(teamName) {
+            const teamCard = document.querySelector(`.team-card[data-team="${teamName}"]`);
+            const teamTable = document.querySelector(`.trade-team-table-wrapper[data-team="${teamName}"]`);
+            const totalValueCell = teamTable ? teamTable.querySelector('.trade-total-value') : null;
+            const totalFooter = teamCard ? teamCard.querySelector('.team-total-footer span:last-child') : null;
+            const totalValue = totalFooter ? totalFooter.textContent.trim() : '0.00';
+            if (totalValueCell) {
+                totalValueCell.textContent = totalValue;
+            }
+        }
+
+        function addTradeDelta(teamName, playerName, costValue, action) {
+            const tradeBody = document.querySelector(`.trade-delta-body[data-team="${teamName}"]`);
+            const row = document.createElement('tr');
+            const badge = action === 'added' ? 'Added' : 'Traded away';
+            const className = action === 'added' ? 'trade-added-row' : 'trade-removed-row';
+            row.className = className;
+            row.innerHTML = `<td>${playerName}</td><td>${costValue}</td><td>${badge}</td>`;
+            tradeBody.appendChild(row);
+            updateTradeTotal(teamName);
+        }
+
+        function attachDragAndDrop() {
+            document.querySelectorAll('.draggable-row').forEach(row => {
+                row.addEventListener('dragstart', event => {
+                    draggedRow = row;
+                    event.dataTransfer.effectAllowed = 'copy';
+                });
+
+                row.addEventListener('dragend', () => {
+                    draggedRow = null;
+                });
+            });
+
+            document.querySelectorAll('.team-card tbody').forEach(tbody => {
+                tbody.addEventListener('dragover', event => {
+                    event.preventDefault();
+                });
+
+                tbody.addEventListener('drop', event => {
+                    event.preventDefault();
+                    if (!tradeModeEnabled || !draggedRow) {
+                        return;
+                    }
+
+                    const sourceCard = draggedRow.closest('.team-card');
+                    const targetCard = tbody.closest('.team-card');
+                    if (!sourceCard || !targetCard || sourceCard === targetCard) {
+                        return;
+                    }
+
+                    const sourceTbody = sourceCard.querySelector('tbody');
+                    const movedRow = draggedRow;
+                    const playerName = movedRow.dataset.player;
+                    const costValue = movedRow.dataset.cost;
+
+                    sourceTbody.removeChild(movedRow);
+                    const clonedRow = movedRow.cloneNode(true);
+                    clonedRow.dataset.team = targetCard.dataset.team;
+                    clonedRow.setAttribute('draggable', 'true');
+                    clonedRow.addEventListener('dragstart', event => {
+                        draggedRow = clonedRow;
+                        event.dataTransfer.effectAllowed = 'copy';
+                    });
+                    clonedRow.addEventListener('dragend', () => {
+                        draggedRow = null;
+                    });
+                    tbody.appendChild(clonedRow);
+
+                    addTradeDelta(targetCard.dataset.team, playerName, costValue, 'added');
+                    addTradeDelta(sourceCard.dataset.team, playerName, costValue, 'removed');
+                    recalculateTeamTotals();
+                });
+            });
+        }
+
+        function clearTradeDelta() {
+            document.querySelectorAll('.trade-delta-body').forEach(tradeBody => {
+                tradeBody.innerHTML = '';
+            });
+            document.querySelectorAll('.trade-total-value').forEach(totalCell => {
+                totalCell.textContent = '0.00';
+            });
+        }
+
+        function setTradeMode(enabled) {
+            tradeModeEnabled = enabled;
+            const report = document.querySelector('.report');
+            const rosterSection = document.querySelector('.team-roster-section');
+            const toggleButton = document.getElementById('trade-mode-toggle');
+            report.classList.toggle('trade-mode-active', enabled);
+            rosterSection.classList.toggle('trade-mode-active', enabled);
+            toggleButton.textContent = enabled ? 'Deactivate trade mode' : 'Trade Proposal';
+            toggleButton.classList.toggle('active', enabled);
+
+            if (enabled) {
+                clearTradeDelta();
+                attachDragAndDrop();
+                recalculateTeamTotals();
+            } else {
+                clearTradeDelta();
+                resetTradeMode();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.team-toggle').forEach(toggle => {
+                toggle.addEventListener('change', syncTeamCards);
+            });
+
+            document.getElementById('see-all-teams').addEventListener('click', () => {
+                document.querySelectorAll('.team-toggle').forEach(toggle => {
+                    toggle.checked = true;
+                });
+                syncTeamCards();
+            });
+
+            document.getElementById('hide-all-teams').addEventListener('click', () => {
+                document.querySelectorAll('.team-toggle').forEach(toggle => {
+                    toggle.checked = false;
+                });
+                syncTeamCards();
+            });
+
+            document.getElementById('trade-mode-toggle').addEventListener('click', () => {
+                setTradeMode(!tradeModeEnabled);
+            });
+
+            syncTeamCards();
+            recalculateTeamTotals();
+        });
+    </script>
+</head>
+<body>
+    <div class="report">
+        <h1>League Rosters</h1>
+        <div class="summary-banner">League ID: 1313588073270870016</div>
+
+        <div class="section-card">
+            <details>
+                <summary>Top 200 Players</summary>
+                <div class="table-wrap">
+                    <table class="dataframe top-players-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Player Name</th>
+      <th>Cost</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Christian McCaffrey</td>
+      <td>100.0</td>
+    </tr>
+    <tr>
+      <td>Bijan Robinson</td>
+      <td>99.5</td>
+    </tr>
+    <tr>
+      <td>Puka Nacua</td>
+      <td>99.0</td>
+    </tr>
+    <tr>
+      <td>Jaxon Smith-Njigba</td>
+      <td>98.5</td>
+    </tr>
+    <tr>
+      <td>Jonathan Taylor</td>
+      <td>98.0</td>
+    </tr>
+    <tr>
+      <td>Jahmyr Gibbs</td>
+      <td>97.5</td>
+    </tr>
+    <tr>
+      <td>Trey McBride</td>
+      <td>97.0</td>
+    </tr>
+    <tr>
+      <td>Josh Allen</td>
+      <td>96.5</td>
+    </tr>
+    <tr>
+      <td>Drake Maye</td>
+      <td>96.0</td>
+    </tr>
+    <tr>
+      <td>Matthew Stafford</td>
+      <td>95.5</td>
+    </tr>
+    <tr>
+      <td>Trevor Lawrence</td>
+      <td>95.0</td>
+    </tr>
+    <tr>
+      <td>De'Von Achane</td>
+      <td>94.5</td>
+    </tr>
+    <tr>
+      <td>Amon-Ra St. Brown</td>
+      <td>94.0</td>
+    </tr>
+    <tr>
+      <td>Ja'Marr Chase</td>
+      <td>93.5</td>
+    </tr>
+    <tr>
+      <td>James Cook</td>
+      <td>93.0</td>
+    </tr>
+    <tr>
+      <td>Dak Prescott</td>
+      <td>92.5</td>
+    </tr>
+    <tr>
+      <td>Caleb Williams</td>
+      <td>92.0</td>
+    </tr>
+    <tr>
+      <td>Bo Nix</td>
+      <td>91.5</td>
+    </tr>
+    <tr>
+      <td>George Pickens</td>
+      <td>91.0</td>
+    </tr>
+    <tr>
+      <td>Derrick Henry</td>
+      <td>90.5</td>
+    </tr>
+    <tr>
+      <td>Jalen Hurts</td>
+      <td>90.0</td>
+    </tr>
+    <tr>
+      <td>Chimere Dike</td>
+      <td>89.5</td>
+    </tr>
+    <tr>
+      <td>Jared Goff</td>
+      <td>89.0</td>
+    </tr>
+    <tr>
+      <td>Justin Herbert</td>
+      <td>88.5</td>
+    </tr>
+    <tr>
+      <td>Chase Brown</td>
+      <td>88.0</td>
+    </tr>
+    <tr>
+      <td>Patrick Mahomes</td>
+      <td>87.5</td>
+    </tr>
+    <tr>
+      <td>Kenny Gainwell</td>
+      <td>87.0</td>
+    </tr>
+    <tr>
+      <td>Baker Mayfield</td>
+      <td>86.5</td>
+    </tr>
+    <tr>
+      <td>Kyren Williams</td>
+      <td>86.0</td>
+    </tr>
+    <tr>
+      <td>Chris Olave</td>
+      <td>85.5</td>
+    </tr>
+    <tr>
+      <td>Travis Etienne</td>
+      <td>85.0</td>
+    </tr>
+    <tr>
+      <td>KaVontae Turpin</td>
+      <td>84.5</td>
+    </tr>
+    <tr>
+      <td>Javonte Williams</td>
+      <td>84.0</td>
+    </tr>
+    <tr>
+      <td>Kyle Pitts</td>
+      <td>83.5</td>
+    </tr>
+    <tr>
+      <td>Zay Flowers</td>
+      <td>83.0</td>
+    </tr>
+    <tr>
+      <td>Ashton Jeanty</td>
+      <td>82.5</td>
+    </tr>
+    <tr>
+      <td>Rico Dowdle</td>
+      <td>82.0</td>
+    </tr>
+    <tr>
+      <td>Jaylen Warren</td>
+      <td>81.5</td>
+    </tr>
+    <tr>
+      <td>Sam Darnold</td>
+      <td>81.0</td>
+    </tr>
+    <tr>
+      <td>Saquon Barkley</td>
+      <td>80.5</td>
+    </tr>
+    <tr>
+      <td>D'Andre Swift</td>
+      <td>80.0</td>
+    </tr>
+    <tr>
+      <td>Jaxson Dart</td>
+      <td>79.5</td>
+    </tr>
+    <tr>
+      <td>Josh Jacobs</td>
+      <td>79.0</td>
+    </tr>
+    <tr>
+      <td>Jordan Love</td>
+      <td>78.5</td>
+    </tr>
+    <tr>
+      <td>RJ Harvey</td>
+      <td>78.0</td>
+    </tr>
+    <tr>
+      <td>Nico Collins</td>
+      <td>77.5</td>
+    </tr>
+    <tr>
+      <td>Jacoby Brissett</td>
+      <td>77.0</td>
+    </tr>
+    <tr>
+      <td>TreVeyon Henderson</td>
+      <td>76.5</td>
+    </tr>
+    <tr>
+      <td>Jameson Williams</td>
+      <td>76.0</td>
+    </tr>
+    <tr>
+      <td>Daniel Jones</td>
+      <td>75.5</td>
+    </tr>
+    <tr>
+      <td>Breece Hall</td>
+      <td>75.0</td>
+    </tr>
+    <tr>
+      <td>Rashid Shaheed</td>
+      <td>74.5</td>
+    </tr>
+    <tr>
+      <td>Travis Kelce</td>
+      <td>74.0</td>
+    </tr>
+    <tr>
+      <td>Michael Wilson</td>
+      <td>73.5</td>
+    </tr>
+    <tr>
+      <td>A.J. Brown</td>
+      <td>73.0</td>
+    </tr>
+    <tr>
+      <td>Courtland Sutton</td>
+      <td>72.5</td>
+    </tr>
+    <tr>
+      <td>Wan'Dale Robinson</td>
+      <td>72.0</td>
+    </tr>
+    <tr>
+      <td>Deebo Samuel</td>
+      <td>71.5</td>
+    </tr>
+    <tr>
+      <td>Parker Washington</td>
+      <td>71.0</td>
+    </tr>
+    <tr>
+      <td>Malik Washington</td>
+      <td>70.5</td>
+    </tr>
+    <tr>
+      <td>Aaron Rodgers</td>
+      <td>70.0</td>
+    </tr>
+    <tr>
+      <td>Tyler Warren</td>
+      <td>69.5</td>
+    </tr>
+    <tr>
+      <td>Stefon Diggs</td>
+      <td>69.0</td>
+    </tr>
+    <tr>
+      <td>Davante Adams</td>
+      <td>68.5</td>
+    </tr>
+    <tr>
+      <td>Bryce Young</td>
+      <td>68.0</td>
+    </tr>
+    <tr>
+      <td>Tetairoa McMillan</td>
+      <td>67.5</td>
+    </tr>
+    <tr>
+      <td>Juwan Johnson</td>
+      <td>67.0</td>
+    </tr>
+    <tr>
+      <td>Jake Ferguson</td>
+      <td>66.5</td>
+    </tr>
+    <tr>
+      <td>CeeDee Lamb</td>
+      <td>66.0</td>
+    </tr>
+    <tr>
+      <td>C.J. Stroud</td>
+      <td>65.5</td>
+    </tr>
+    <tr>
+      <td>Harold Fannin</td>
+      <td>65.0</td>
+    </tr>
+    <tr>
+      <td>Lamar Jackson</td>
+      <td>64.5</td>
+    </tr>
+    <tr>
+      <td>Dalton Schultz</td>
+      <td>64.0</td>
+    </tr>
+    <tr>
+      <td>Drake London</td>
+      <td>63.5</td>
+    </tr>
+    <tr>
+      <td>Justin Jefferson</td>
+      <td>63.0</td>
+    </tr>
+    <tr>
+      <td>Tee Higgins</td>
+      <td>62.5</td>
+    </tr>
+    <tr>
+      <td>DeVonta Smith</td>
+      <td>62.0</td>
+    </tr>
+    <tr>
+      <td>Dallas Goedert</td>
+      <td>61.5</td>
+    </tr>
+    <tr>
+      <td>Hunter Henry</td>
+      <td>61.0</td>
+    </tr>
+    <tr>
+      <td>Kenneth Walker</td>
+      <td>60.5</td>
+    </tr>
+    <tr>
+      <td>Brock Bowers</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <td>Michael Pittman</td>
+      <td>59.5</td>
+    </tr>
+    <tr>
+      <td>Jaylen Waddle</td>
+      <td>59.0</td>
+    </tr>
+    <tr>
+      <td>Emeka Egbuka</td>
+      <td>58.5</td>
+    </tr>
+    <tr>
+      <td>Tony Pollard</td>
+      <td>58.0</td>
+    </tr>
+    <tr>
+      <td>Colston Loveland</td>
+      <td>57.5</td>
+    </tr>
+    <tr>
+      <td>Marvin Mims</td>
+      <td>57.0</td>
+    </tr>
+    <tr>
+      <td>Alec Pierce</td>
+      <td>56.5</td>
+    </tr>
+    <tr>
+      <td>DK Metcalf</td>
+      <td>56.0</td>
+    </tr>
+    <tr>
+      <td>Keenan Allen</td>
+      <td>55.5</td>
+    </tr>
+    <tr>
+      <td>George Kittle</td>
+      <td>55.0</td>
+    </tr>
+    <tr>
+      <td>Cam Ward</td>
+      <td>54.5</td>
+    </tr>
+    <tr>
+      <td>Zach Charbonnet</td>
+      <td>54.0</td>
+    </tr>
+    <tr>
+      <td>Rhamondre Stevenson</td>
+      <td>53.5</td>
+    </tr>
+    <tr>
+      <td>Ladd McConkey</td>
+      <td>53.0</td>
+    </tr>
+    <tr>
+      <td>Tyrone Tracy</td>
+      <td>52.5</td>
+    </tr>
+    <tr>
+      <td>Quinshon Judkins</td>
+      <td>52.0</td>
+    </tr>
+    <tr>
+      <td>Jakobi Meyers</td>
+      <td>51.5</td>
+    </tr>
+    <tr>
+      <td>Khalil Shakir</td>
+      <td>51.0</td>
+    </tr>
+    <tr>
+      <td>Brock Purdy</td>
+      <td>50.5</td>
+    </tr>
+    <tr>
+      <td>Romeo Doubs</td>
+      <td>50.0</td>
+    </tr>
+    <tr>
+      <td>Geno Smith</td>
+      <td>49.5</td>
+    </tr>
+    <tr>
+      <td>Troy Franklin</td>
+      <td>49.0</td>
+    </tr>
+    <tr>
+      <td>David Montgomery</td>
+      <td>48.5</td>
+    </tr>
+    <tr>
+      <td>Jaylin Noel</td>
+      <td>48.0</td>
+    </tr>
+    <tr>
+      <td>DJ Moore</td>
+      <td>47.5</td>
+    </tr>
+    <tr>
+      <td>Jauan Jennings</td>
+      <td>47.0</td>
+    </tr>
+    <tr>
+      <td>AJ Barner</td>
+      <td>46.5</td>
+    </tr>
+    <tr>
+      <td>Isaiah Williams</td>
+      <td>46.0</td>
+    </tr>
+    <tr>
+      <td>Quentin Johnston</td>
+      <td>45.5</td>
+    </tr>
+    <tr>
+      <td>Tre Tucker</td>
+      <td>45.0</td>
+    </tr>
+    <tr>
+      <td>Greg Dortch</td>
+      <td>44.5</td>
+    </tr>
+    <tr>
+      <td>Blake Corum</td>
+      <td>44.0</td>
+    </tr>
+    <tr>
+      <td>Tyler Shough</td>
+      <td>43.5</td>
+    </tr>
+    <tr>
+      <td>Tua Tagovailoa</td>
+      <td>43.0</td>
+    </tr>
+    <tr>
+      <td>Woody Marks</td>
+      <td>42.5</td>
+    </tr>
+    <tr>
+      <td>Kareem Hunt</td>
+      <td>42.0</td>
+    </tr>
+    <tr>
+      <td>Oronde Gadsden</td>
+      <td>41.5</td>
+    </tr>
+    <tr>
+      <td>Kyle Monangai</td>
+      <td>41.0</td>
+    </tr>
+    <tr>
+      <td>Myles Price</td>
+      <td>40.5</td>
+    </tr>
+    <tr>
+      <td>Luther Burden</td>
+      <td>40.0</td>
+    </tr>
+    <tr>
+      <td>Ray Davis</td>
+      <td>39.5</td>
+    </tr>
+    <tr>
+      <td>Chuba Hubbard</td>
+      <td>39.0</td>
+    </tr>
+    <tr>
+      <td>Mark Andrews</td>
+      <td>38.5</td>
+    </tr>
+    <tr>
+      <td>Rashee Rice</td>
+      <td>38.0</td>
+    </tr>
+    <tr>
+      <td>Rome Odunze</td>
+      <td>37.5</td>
+    </tr>
+    <tr>
+      <td>Chig Okonkwo</td>
+      <td>37.0</td>
+    </tr>
+    <tr>
+      <td>Rachaad White</td>
+      <td>36.5</td>
+    </tr>
+    <tr>
+      <td>Zach Ertz</td>
+      <td>36.0</td>
+    </tr>
+    <tr>
+      <td>Jacory Croskey-Merritt</td>
+      <td>35.5</td>
+    </tr>
+    <tr>
+      <td>Cade Otton</td>
+      <td>35.0</td>
+    </tr>
+    <tr>
+      <td>Theo Johnson</td>
+      <td>34.5</td>
+    </tr>
+    <tr>
+      <td>Kimani Vidal</td>
+      <td>34.0</td>
+    </tr>
+    <tr>
+      <td>Joe Flacco</td>
+      <td>33.5</td>
+    </tr>
+    <tr>
+      <td>Sean Tucker</td>
+      <td>33.0</td>
+    </tr>
+    <tr>
+      <td>Dalton Kincaid</td>
+      <td>32.5</td>
+    </tr>
+    <tr>
+      <td>Justin Fields</td>
+      <td>32.0</td>
+    </tr>
+    <tr>
+      <td>Josh Downs</td>
+      <td>31.5</td>
+    </tr>
+    <tr>
+      <td>Bucky Irving</td>
+      <td>31.0</td>
+    </tr>
+    <tr>
+      <td>Colby Parkinson</td>
+      <td>30.5</td>
+    </tr>
+    <tr>
+      <td>Omarion Hampton</td>
+      <td>30.0</td>
+    </tr>
+    <tr>
+      <td>Brian Thomas</td>
+      <td>29.5</td>
+    </tr>
+    <tr>
+      <td>Jordan Addison</td>
+      <td>29.0</td>
+    </tr>
+    <tr>
+      <td>Devin Singletary</td>
+      <td>28.5</td>
+    </tr>
+    <tr>
+      <td>Brenton Strange</td>
+      <td>28.0</td>
+    </tr>
+    <tr>
+      <td>Marquise Brown</td>
+      <td>27.5</td>
+    </tr>
+    <tr>
+      <td>Bhayshul Tuten</td>
+      <td>27.0</td>
+    </tr>
+    <tr>
+      <td>Jordan Mason</td>
+      <td>26.5</td>
+    </tr>
+    <tr>
+      <td>Mac Jones</td>
+      <td>26.0</td>
+    </tr>
+    <tr>
+      <td>Christian Watson</td>
+      <td>25.5</td>
+    </tr>
+    <tr>
+      <td>T.J. Hockenson</td>
+      <td>25.0</td>
+    </tr>
+    <tr>
+      <td>Tucker Kraft</td>
+      <td>24.5</td>
+    </tr>
+    <tr>
+      <td>Cam Skattebo</td>
+      <td>24.0</td>
+    </tr>
+    <tr>
+      <td>Pat Freiermuth</td>
+      <td>23.5</td>
+    </tr>
+    <tr>
+      <td>Marvin Harrison</td>
+      <td>23.0</td>
+    </tr>
+    <tr>
+      <td>Joe Burrow</td>
+      <td>22.5</td>
+    </tr>
+    <tr>
+      <td>Marcus Mariota</td>
+      <td>22.0</td>
+    </tr>
+    <tr>
+      <td>Jayden Higgins</td>
+      <td>21.5</td>
+    </tr>
+    <tr>
+      <td>Tyler Allgeier</td>
+      <td>21.0</td>
+    </tr>
+    <tr>
+      <td>Samaje Perine</td>
+      <td>20.5</td>
+    </tr>
+    <tr>
+      <td>Sam LaPorta</td>
+      <td>20.0</td>
+    </tr>
+    <tr>
+      <td>Tyquan Thornton</td>
+      <td>19.5</td>
+    </tr>
+    <tr>
+      <td>Evan Engram</td>
+      <td>19.0</td>
+    </tr>
+    <tr>
+      <td>Kayshon Boutte</td>
+      <td>18.5</td>
+    </tr>
+    <tr>
+      <td>Jerry Jeudy</td>
+      <td>18.0</td>
+    </tr>
+    <tr>
+      <td>Skyy Moore</td>
+      <td>17.5</td>
+    </tr>
+    <tr>
+      <td>J.K. Dobbins</td>
+      <td>17.0</td>
+    </tr>
+    <tr>
+      <td>J.J. McCarthy</td>
+      <td>16.5</td>
+    </tr>
+    <tr>
+      <td>Emanuel Wilson</td>
+      <td>16.0</td>
+    </tr>
+    <tr>
+      <td>Aaron Jones</td>
+      <td>15.5</td>
+    </tr>
+    <tr>
+      <td>Michael Penix</td>
+      <td>15.0</td>
+    </tr>
+    <tr>
+      <td>Devin Duvernay</td>
+      <td>14.5</td>
+    </tr>
+    <tr>
+      <td>Ryan Flournoy</td>
+      <td>14.0</td>
+    </tr>
+    <tr>
+      <td>Ty Johnson</td>
+      <td>13.5</td>
+    </tr>
+    <tr>
+      <td>Dylan Sampson</td>
+      <td>13.0</td>
+    </tr>
+    <tr>
+      <td>Dawson Knox</td>
+      <td>12.5</td>
+    </tr>
+    <tr>
+      <td>Terry McLaurin</td>
+      <td>12.0</td>
+    </tr>
+    <tr>
+      <td>Luke McCaffrey</td>
+      <td>11.5</td>
+    </tr>
+    <tr>
+      <td>Zonovan Knight</td>
+      <td>11.0</td>
+    </tr>
+    <tr>
+      <td>Elic Ayomanor</td>
+      <td>10.5</td>
+    </tr>
+    <tr>
+      <td>Cooper Kupp</td>
+      <td>10.0</td>
+    </tr>
+    <tr>
+      <td>Mack Hollins</td>
+      <td>9.5</td>
+    </tr>
+    <tr>
+      <td>Gunner Olszewski</td>
+      <td>9.0</td>
+    </tr>
+    <tr>
+      <td>Jayden Daniels</td>
+      <td>8.5</td>
+    </tr>
+    <tr>
+      <td>Tyjae Spears</td>
+      <td>8.0</td>
+    </tr>
+    <tr>
+      <td>Charlie Jones</td>
+      <td>7.5</td>
+    </tr>
+    <tr>
+      <td>Xavier Worthy</td>
+      <td>7.0</td>
+    </tr>
+    <tr>
+      <td>Keaton Mitchell</td>
+      <td>6.5</td>
+    </tr>
+    <tr>
+      <td>Brashard Smith</td>
+      <td>6.0</td>
+    </tr>
+    <tr>
+      <td>Mason Taylor</td>
+      <td>5.5</td>
+    </tr>
+    <tr>
+      <td>Gunnar Helm</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Jake Tonges</td>
+      <td>4.5</td>
+    </tr>
+    <tr>
+      <td>Kameron Johnson</td>
+      <td>4.0</td>
+    </tr>
+    <tr>
+      <td>Keon Coleman</td>
+      <td>3.5</td>
+    </tr>
+    <tr>
+      <td>Michael Carter</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <td>Alvin Kamara</td>
+      <td>2.5</td>
+    </tr>
+    <tr>
+      <td>Spencer Rattler</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <td>Kirk Cousins</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <td>Kalif Raymond</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>Jalen Nailor</td>
+      <td>0.5</td>
+    </tr>
+  </tbody>
+</table>
+                </div>
+            </details>
+        </div>
+
+        <div class="section-card trade-delta-section">
+            <div class="trade-delta-title">Traded Players</div>
+            <div class="trade-team-table-grid">
+                
+        <div class="trade-team-table-wrapper" data-team="Ostyn">
+            <div class="trade-team-table-title">Ostyn</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="Ostyn"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="Gbessie">
+            <div class="trade-team-table-title">Gbessie</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="Gbessie"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="r1cky">
+            <div class="trade-team-table-title">r1cky</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="r1cky"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="CalixsCrew">
+            <div class="trade-team-table-title">CalixsCrew</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="CalixsCrew"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="Jwilly0925">
+            <div class="trade-team-table-title">Jwilly0925</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="Jwilly0925"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="Wain">
+            <div class="trade-team-table-title">Wain</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="Wain"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="BrennanKrause">
+            <div class="trade-team-table-title">BrennanKrause</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="BrennanKrause"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="AveryGoodrich">
+            <div class="trade-team-table-title">AveryGoodrich</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="AveryGoodrich"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="EthanGoodrich">
+            <div class="trade-team-table-title">EthanGoodrich</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="EthanGoodrich"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+
+        <div class="trade-team-table-wrapper" data-team="Gorris">
+            <div class="trade-team-table-title">Gorris</div>
+            <table class="trade-team-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="trade-delta-body" data-team="Gorris"></tbody>
+                <tfoot>
+                    <tr class="trade-total-row">
+                        <td colspan="2">Team Total</td>
+                        <td class="trade-total-value">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+            </div>
+        </div>
+
+        <div class="section-card">
+            <details>
+                <summary>Team Totals</summary>
+                
+<div class="table-wrap team-summary-table-wrap">
+    <table class="team-summary-table">
+        <thead>
+            <tr>
+                <th>Team</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Ostyn</td><td>875.5</td></tr><tr><td>Gbessie</td><td>993.0</td></tr><tr><td>r1cky</td><td>1000.0</td></tr><tr><td>CalixsCrew</td><td>914.5</td></tr><tr><td>Jwilly0925</td><td>451.0</td></tr><tr><td>Wain</td><td>999.0</td></tr><tr><td>BrennanKrause</td><td>957.0</td></tr><tr><td>AveryGoodrich</td><td>996.5</td></tr><tr><td>EthanGoodrich</td><td>958.0</td></tr><tr><td>Gorris</td><td>885.0</td></tr>
+        </tbody>
+    </table>
+</div>
+
+            </details>
+        </div>
+
+        <div class="section-card team-roster-section">
+            <div class="trade-watermark">Proposed Trade</div>
+            <h2>Team Rosters</h2>
+            <p class="trade-help">Selecting Trade Proposal allows for trades to be modeled by clicking and dragging player rows between team rosters. Updated totals will be shown also. Deselecting Trade Proposals resets the document</p>
+            <div class="team-filter-bar">
+                <button id="see-all-teams" type="button" class="action-button">See all</button>
+                <button id="hide-all-teams" type="button" class="action-button hide-button">Hide</button>
+                <button id="trade-mode-toggle" type="button" class="action-button">Trade Proposal</button>
+                <span>View teams:</span>
+                <label class="team-filter"><input type="checkbox" class="team-toggle" data-team="Ostyn" checked /> Ostyn</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="Gbessie" checked /> Gbessie</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="r1cky" checked /> r1cky</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="CalixsCrew" checked /> CalixsCrew</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="Jwilly0925" checked /> Jwilly0925</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="Wain" checked /> Wain</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="BrennanKrause" checked /> BrennanKrause</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="AveryGoodrich" checked /> AveryGoodrich</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="EthanGoodrich" checked /> EthanGoodrich</label>
+<label class="team-filter"><input type="checkbox" class="team-toggle" data-team="Gorris" checked /> Gorris</label>
+            </div>
+            <div class="team-grid">
+                
+        <div class="team-card" data-team="Ostyn">
+            <h3>Ostyn</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Anthony Richardson" data-cost="0.5"><td>Anthony Richardson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Daniel Jones" data-cost="75.5"><td>Daniel Jones</td><td>75.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Deshaun Watson" data-cost="0.5"><td>Deshaun Watson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Jacoby Brissett" data-cost="77.0"><td>Jacoby Brissett</td><td>77.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Jayden Daniels" data-cost="8.5"><td>Jayden Daniels</td><td>8.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Josh Allen" data-cost="96.5"><td>Josh Allen</td><td>96.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Michael Penix" data-cost="15.0"><td>Michael Penix</td><td>15.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Audric Estime" data-cost="0.5"><td>Audric Estime</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Breece Hall" data-cost="75.0"><td>Breece Hall</td><td>75.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Brian Robinson" data-cost="0.5"><td>Brian Robinson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Christian McCaffrey" data-cost="100.0"><td>Christian McCaffrey</td><td>100.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Jeremiyah Love" data-cost="0.5"><td>Jeremiyah Love</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Jonathon Brooks" data-cost="0.5"><td>Jonathon Brooks</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Omarion Hampton" data-cost="30.0"><td>Omarion Hampton</td><td>30.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Saquon Barkley" data-cost="80.5"><td>Saquon Barkley</td><td>80.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Tyjae Spears" data-cost="8.0"><td>Tyjae Spears</td><td>8.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Zach Charbonnet" data-cost="54.0"><td>Zach Charbonnet</td><td>54.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Chris Olave" data-cost="85.5"><td>Chris Olave</td><td>85.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Cooper Kupp" data-cost="10.0"><td>Cooper Kupp</td><td>10.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Denzel Boston" data-cost="0.5"><td>Denzel Boston</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Drake London" data-cost="63.5"><td>Drake London</td><td>63.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Garrett Wilson" data-cost="0.5"><td>Garrett Wilson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Chig Okonkwo" data-cost="37.0"><td>Chig Okonkwo</td><td>37.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="George Kittle" data-cost="55.0"><td>George Kittle</td><td>55.0</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Kenyon Sadiq" data-cost="0.5"><td>Kenyon Sadiq</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Carson Beck (Taxi)" data-cost=""><td>Carson Beck (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Jalen Milroe (Taxi)" data-cost=""><td>Jalen Milroe (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Woody Marks (Taxi)" data-cost=""><td>Woody Marks (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Cyrus Allen (Taxi)" data-cost=""><td>Cyrus Allen (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="De&#x27;Zhaun Stribling (Taxi)" data-cost=""><td>De&#x27;Zhaun Stribling (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Pat Bryant (Taxi)" data-cost=""><td>Pat Bryant (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Tetairoa McMillan (Taxi)" data-cost=""><td>Tetairoa McMillan (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Tez Johnson (Taxi)" data-cost=""><td>Tez Johnson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Eli Raridon (Taxi)" data-cost=""><td>Eli Raridon (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Ostyn" data-player="Elijah Arroyo (Taxi)" data-cost=""><td>Elijah Arroyo (Taxi)</td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>875.5</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="Gbessie">
+            <h3>Gbessie</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Caleb Williams" data-cost="92.0"><td>Caleb Williams</td><td>92.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Justin Herbert" data-cost="88.5"><td>Justin Herbert</td><td>88.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Kirk Cousins" data-cost="1.5"><td>Kirk Cousins</td><td>1.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Shedeur Sanders" data-cost="0.5"><td>Shedeur Sanders</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Chuba Hubbard" data-cost="39.0"><td>Chuba Hubbard</td><td>39.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Jaylen Warren" data-cost="81.5"><td>Jaylen Warren</td><td>81.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Kenneth Walker" data-cost="60.5"><td>Kenneth Walker</td><td>60.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Alec Pierce" data-cost="56.5"><td>Alec Pierce</td><td>56.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="DJ Moore" data-cost="47.5"><td>DJ Moore</td><td>47.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Davante Adams" data-cost="68.5"><td>Davante Adams</td><td>68.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="George Pickens" data-cost="91.0"><td>George Pickens</td><td>91.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="KaVontae Turpin" data-cost="84.5"><td>KaVontae Turpin</td><td>84.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Kalif Raymond" data-cost="1.0"><td>Kalif Raymond</td><td>1.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Khalil Shakir" data-cost="51.0"><td>Khalil Shakir</td><td>51.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Parker Washington" data-cost="71.0"><td>Parker Washington</td><td>71.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Rashid Shaheed" data-cost="74.5"><td>Rashid Shaheed</td><td>74.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Tyreek Hill" data-cost="0.5"><td>Tyreek Hill</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Cole Kmet" data-cost="0.5"><td>Cole Kmet</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Colston Loveland" data-cost="57.5"><td>Colston Loveland</td><td>57.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Greg Dulcich" data-cost="0.5"><td>Greg Dulcich</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="T.J. Hockenson" data-cost="25.0"><td>T.J. Hockenson</td><td>25.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Kaytron Allen (Taxi)" data-cost=""><td>Kaytron Allen (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Trevor Etienne (Taxi)" data-cost=""><td>Trevor Etienne (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Aaron Anderson (Taxi)" data-cost=""><td>Aaron Anderson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Jahdae Walker (Taxi)" data-cost=""><td>Jahdae Walker (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Jeff Caldwell (Taxi)" data-cost=""><td>Jeff Caldwell (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Kevin Coleman (Taxi)" data-cost=""><td>Kevin Coleman (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Travis Hunter (Taxi)" data-cost=""><td>Travis Hunter (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Zavion Thomas (Taxi)" data-cost=""><td>Zavion Thomas (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Sam Roush (Taxi)" data-cost=""><td>Sam Roush (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="Will Kacmarek (Taxi)" data-cost=""><td>Will Kacmarek (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gbessie" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>993.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="r1cky">
+            <h3>r1cky</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Bryce Young" data-cost="68.0"><td>Bryce Young</td><td>68.0</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="C.J. Stroud" data-cost="65.5"><td>C.J. Stroud</td><td>65.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Jordan Love" data-cost="78.5"><td>Jordan Love</td><td>78.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Ashton Jeanty" data-cost="82.5"><td>Ashton Jeanty</td><td>82.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Javonte Williams" data-cost="84.0"><td>Javonte Williams</td><td>84.0</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="RJ Harvey" data-cost="78.0"><td>RJ Harvey</td><td>78.0</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Brian Thomas" data-cost="29.5"><td>Brian Thomas</td><td>29.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Chimere Dike" data-cost="89.5"><td>Chimere Dike</td><td>89.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Ja&#x27;Marr Chase" data-cost="93.5"><td>Ja&#x27;Marr Chase</td><td>93.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Jalen Coker" data-cost="0.5"><td>Jalen Coker</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Jalen Nailor" data-cost="0.5"><td>Jalen Nailor</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Jameson Williams" data-cost="76.0"><td>Jameson Williams</td><td>76.0</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Marvin Mims" data-cost="57.0"><td>Marvin Mims</td><td>57.0</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Matthew Golden" data-cost="0.5"><td>Matthew Golden</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Quentin Johnston" data-cost="45.5"><td>Quentin Johnston</td><td>45.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Dalton Kincaid" data-cost="32.5"><td>Dalton Kincaid</td><td>32.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Kyle Pitts" data-cost="83.5"><td>Kyle Pitts</td><td>83.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Oscar Delp" data-cost="0.5"><td>Oscar Delp</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Theo Johnson" data-cost="34.5"><td>Theo Johnson</td><td>34.5</td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Dylan Sampson (Taxi)" data-cost=""><td>Dylan Sampson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Chris Brazzell (Taxi)" data-cost=""><td>Chris Brazzell (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Isaac TeSlaa (Taxi)" data-cost=""><td>Isaac TeSlaa (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Ja&#x27;Kobi Lane (Taxi)" data-cost=""><td>Ja&#x27;Kobi Lane (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="KC Concepcion (Taxi)" data-cost=""><td>KC Concepcion (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Luther Burden (Taxi)" data-cost=""><td>Luther Burden (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Tre&#x27; Harris (Taxi)" data-cost=""><td>Tre&#x27; Harris (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Zachariah Branch (Taxi)" data-cost=""><td>Zachariah Branch (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Justin Joly (Taxi)" data-cost=""><td>Justin Joly (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="Terrance Ferguson (Taxi)" data-cost=""><td>Terrance Ferguson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="r1cky" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>1000.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="CalixsCrew">
+            <h3>CalixsCrew</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Kyler Murray" data-cost="0.5"><td>Kyler Murray</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Lamar Jackson" data-cost="64.5"><td>Lamar Jackson</td><td>64.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Trevor Lawrence" data-cost="95.0"><td>Trevor Lawrence</td><td>95.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Bijan Robinson" data-cost="99.5"><td>Bijan Robinson</td><td>99.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="David Montgomery" data-cost="48.5"><td>David Montgomery</td><td>48.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="J.K. Dobbins" data-cost="17.0"><td>J.K. Dobbins</td><td>17.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Jonathan Taylor" data-cost="98.0"><td>Jonathan Taylor</td><td>98.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Justice Hill" data-cost="0.5"><td>Justice Hill</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Rico Dowdle" data-cost="82.0"><td>Rico Dowdle</td><td>82.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Seth McGowan" data-cost="0.5"><td>Seth McGowan</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="A.J. Brown" data-cost="73.0"><td>A.J. Brown</td><td>73.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Colbie Young" data-cost="0.5"><td>Colbie Young</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="DK Metcalf" data-cost="56.0"><td>DK Metcalf</td><td>56.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Dontayvion Wicks" data-cost="0.5"><td>Dontayvion Wicks</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="John Metchie" data-cost="0.5"><td>John Metchie</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Malik Washington" data-cost="70.5"><td>Malik Washington</td><td>70.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Romeo Doubs" data-cost="50.0"><td>Romeo Doubs</td><td>50.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Ryan Flournoy" data-cost="14.0"><td>Ryan Flournoy</td><td>14.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Tee Higgins" data-cost="62.5"><td>Tee Higgins</td><td>62.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Treylon Burks" data-cost="0.5"><td>Treylon Burks</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Brock Bowers" data-cost="60.0"><td>Brock Bowers</td><td>60.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Michael Mayer" data-cost="0.5"><td>Michael Mayer</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Sam LaPorta" data-cost="20.0"><td>Sam LaPorta</td><td>20.0</td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Jacory Croskey-Merritt (Taxi)" data-cost=""><td>Jacory Croskey-Merritt (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Brenen Thompson (Taxi)" data-cost=""><td>Brenen Thompson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Deion Burks (Taxi)" data-cost=""><td>Deion Burks (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="Michael Trigg (Taxi)" data-cost=""><td>Michael Trigg (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="CalixsCrew" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>914.5</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="Jwilly0925">
+            <h3>Jwilly0925</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Jaxson Dart" data-cost="79.5"><td>Jaxson Dart</td><td>79.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Joe Burrow" data-cost="22.5"><td>Joe Burrow</td><td>22.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Mac Jones" data-cost="26.0"><td>Mac Jones</td><td>26.0</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Cam Skattebo" data-cost="24.0"><td>Cam Skattebo</td><td>24.0</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Chase Brown" data-cost="88.0"><td>Chase Brown</td><td>88.0</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Kaelon Black" data-cost="0.5"><td>Kaelon Black</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="MarShawn Lloyd" data-cost="0.5"><td>MarShawn Lloyd</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Mike Washington" data-cost="0.5"><td>Mike Washington</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Ollie Gordon" data-cost="0.5"><td>Ollie Gordon</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Amon-Ra St. Brown" data-cost="94.0"><td>Amon-Ra St. Brown</td><td>94.0</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Antonio Williams" data-cost="0.5"><td>Antonio Williams</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Bryce Lance" data-cost="0.5"><td>Bryce Lance</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Carnell Tate" data-cost="0.5"><td>Carnell Tate</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Jayden Higgins" data-cost="21.5"><td>Jayden Higgins</td><td>21.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Jayden Reed" data-cost="0.5"><td>Jayden Reed</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Malik Nabers" data-cost="0.5"><td>Malik Nabers</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Savion Williams" data-cost="0.5"><td>Savion Williams</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Harold Fannin" data-cost="65.0"><td>Harold Fannin</td><td>65.0</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Luke Musgrave" data-cost="0.5"><td>Luke Musgrave</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Noah Gray" data-cost="0.5"><td>Noah Gray</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="Tucker Kraft" data-cost="24.5"><td>Tucker Kraft</td><td>24.5</td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Jwilly0925" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>451.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="Wain">
+            <h3>Wain</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="Wain" data-player="Baker Mayfield" data-cost="86.5"><td>Baker Mayfield</td><td>86.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Cam Ward" data-cost="54.5"><td>Cam Ward</td><td>54.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Drake Maye" data-cost="96.0"><td>Drake Maye</td><td>96.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Jared Goff" data-cost="89.0"><td>Jared Goff</td><td>89.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Alvin Kamara" data-cost="2.5"><td>Alvin Kamara</td><td>2.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Chris Rodriguez" data-cost="0.5"><td>Chris Rodriguez</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="De&#x27;Von Achane" data-cost="94.5"><td>De&#x27;Von Achane</td><td>94.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Devin Neal" data-cost="0.5"><td>Devin Neal</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Isaac Guerendo" data-cost="0.5"><td>Isaac Guerendo</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Kimani Vidal" data-cost="34.0"><td>Kimani Vidal</td><td>34.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Quinshon Judkins" data-cost="52.0"><td>Quinshon Judkins</td><td>52.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Courtland Sutton" data-cost="72.5"><td>Courtland Sutton</td><td>72.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Kayshon Boutte" data-cost="18.5"><td>Kayshon Boutte</td><td>18.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Michael Pittman" data-cost="59.5"><td>Michael Pittman</td><td>59.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Mike Evans" data-cost="0.5"><td>Mike Evans</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Rashee Rice" data-cost="38.0"><td>Rashee Rice</td><td>38.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Ricky Pearsall" data-cost="0.5"><td>Ricky Pearsall</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Troy Franklin" data-cost="49.0"><td>Troy Franklin</td><td>49.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Zay Flowers" data-cost="83.0"><td>Zay Flowers</td><td>83.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="AJ Barner" data-cost="46.5"><td>AJ Barner</td><td>46.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Pat Freiermuth" data-cost="23.5"><td>Pat Freiermuth</td><td>23.5</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Trey McBride" data-cost="97.0"><td>Trey McBride</td><td>97.0</td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Drew Allar (Taxi)" data-cost=""><td>Drew Allar (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Haynes King (Taxi)" data-cost=""><td>Haynes King (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="DJ Giddens (Taxi)" data-cost=""><td>DJ Giddens (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Nicholas Singleton (Taxi)" data-cost=""><td>Nicholas Singleton (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Chris Bell (Taxi)" data-cost=""><td>Chris Bell (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Elic Ayomanor (Taxi)" data-cost=""><td>Elic Ayomanor (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Jack Bech (Taxi)" data-cost=""><td>Jack Bech (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Ted Hurst (Taxi)" data-cost=""><td>Ted Hurst (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Eli Stowers (Taxi)" data-cost=""><td>Eli Stowers (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="Mason Taylor (Taxi)" data-cost=""><td>Mason Taylor (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Wain" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>999.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="BrennanKrause">
+            <h3>BrennanKrause</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Dak Prescott" data-cost="92.5"><td>Dak Prescott</td><td>92.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jalen Hurts" data-cost="90.0"><td>Jalen Hurts</td><td>90.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Joe Milton" data-cost="0.5"><td>Joe Milton</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Malik Willis" data-cost="0.5"><td>Malik Willis</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Blake Corum" data-cost="44.0"><td>Blake Corum</td><td>44.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Bucky Irving" data-cost="31.0"><td>Bucky Irving</td><td>31.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Derrick Henry" data-cost="90.5"><td>Derrick Henry</td><td>90.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jordan Mason" data-cost="26.5"><td>Jordan Mason</td><td>26.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Adonai Mitchell" data-cost="0.5"><td>Adonai Mitchell</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Caleb Douglas" data-cost="0.5"><td>Caleb Douglas</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="CeeDee Lamb" data-cost="66.0"><td>CeeDee Lamb</td><td>66.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Deebo Samuel" data-cost="71.5"><td>Deebo Samuel</td><td>71.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Emeka Egbuka" data-cost="58.5"><td>Emeka Egbuka</td><td>58.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jalen Tolbert" data-cost="0.5"><td>Jalen Tolbert</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jauan Jennings" data-cost="47.0"><td>Jauan Jennings</td><td>47.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jaxon Smith-Njigba" data-cost="98.5"><td>Jaxon Smith-Njigba</td><td>98.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jaylen Waddle" data-cost="59.0"><td>Jaylen Waddle</td><td>59.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jordyn Tyson" data-cost="0.5"><td>Jordyn Tyson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Rome Odunze" data-cost="37.5"><td>Rome Odunze</td><td>37.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Terry McLaurin" data-cost="12.0"><td>Terry McLaurin</td><td>12.0</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Dallas Goedert" data-cost="61.5"><td>Dallas Goedert</td><td>61.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="David Njoku" data-cost="0.5"><td>David Njoku</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Ja&#x27;Tavion Sanders" data-cost="0.5"><td>Ja&#x27;Tavion Sanders</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jake Ferguson" data-cost="66.5"><td>Jake Ferguson</td><td>66.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Matt Hibner" data-cost="0.5"><td>Matt Hibner</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Taylen Green (Taxi)" data-cost=""><td>Taylen Green (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Will Howard (Taxi)" data-cost=""><td>Will Howard (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="J&#x27;Mari Taylor (Taxi)" data-cost=""><td>J&#x27;Mari Taylor (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jaydn Ott (Taxi)" data-cost=""><td>Jaydn Ott (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Kaleb Johnson (Taxi)" data-cost=""><td>Kaleb Johnson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Tahj Brooks (Taxi)" data-cost=""><td>Tahj Brooks (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Dont&#x27;e Thornton (Taxi)" data-cost=""><td>Dont&#x27;e Thornton (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Isaiah Bond (Taxi)" data-cost=""><td>Isaiah Bond (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Jimmy Horn (Taxi)" data-cost=""><td>Jimmy Horn (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="BrennanKrause" data-player="Kaden Wetjen (Taxi)" data-cost=""><td>Kaden Wetjen (Taxi)</td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>957.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="AveryGoodrich">
+            <h3>AveryGoodrich</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="J.J. McCarthy" data-cost="16.5"><td>J.J. McCarthy</td><td>16.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Matthew Stafford" data-cost="95.5"><td>Matthew Stafford</td><td>95.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Sam Darnold" data-cost="81.0"><td>Sam Darnold</td><td>81.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Tyler Shough" data-cost="43.5"><td>Tyler Shough</td><td>43.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Aaron Jones" data-cost="15.5"><td>Aaron Jones</td><td>15.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="D&#x27;Andre Swift" data-cost="80.0"><td>D&#x27;Andre Swift</td><td>80.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Demond Claiborne" data-cost="0.5"><td>Demond Claiborne</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="James Cook" data-cost="93.0"><td>James Cook</td><td>93.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Josh Jacobs" data-cost="79.0"><td>Josh Jacobs</td><td>79.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="TreVeyon Henderson" data-cost="76.5"><td>TreVeyon Henderson</td><td>76.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Will Shipley" data-cost="0.5"><td>Will Shipley</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Christian Watson" data-cost="25.5"><td>Christian Watson</td><td>25.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Darnell Mooney" data-cost="0.5"><td>Darnell Mooney</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Jahan Dotson" data-cost="0.5"><td>Jahan Dotson</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Jalen McMillan" data-cost="0.5"><td>Jalen McMillan</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Justin Jefferson" data-cost="63.0"><td>Justin Jefferson</td><td>63.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Keon Coleman" data-cost="3.5"><td>Keon Coleman</td><td>3.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Michael Wilson" data-cost="73.5"><td>Michael Wilson</td><td>73.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Puka Nacua" data-cost="99.0"><td>Puka Nacua</td><td>99.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Tank Dell" data-cost="0.5"><td>Tank Dell</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Brenton Strange" data-cost="28.0"><td>Brenton Strange</td><td>28.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Gunnar Helm" data-cost="5.0"><td>Gunnar Helm</td><td>5.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Oronde Gadsden" data-cost="41.5"><td>Oronde Gadsden</td><td>41.5</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Travis Kelce" data-cost="74.0"><td>Travis Kelce</td><td>74.0</td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Garrett Nussmeier (Taxi)" data-cost=""><td>Garrett Nussmeier (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Ty Simpson (Taxi)" data-cost=""><td>Ty Simpson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Emmett Johnson (Taxi)" data-cost=""><td>Emmett Johnson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Jaydon Blue (Taxi)" data-cost=""><td>Jaydon Blue (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Jonah Coleman (Taxi)" data-cost=""><td>Jonah Coleman (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Makai Lemon (Taxi)" data-cost=""><td>Makai Lemon (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Malachi Fields (Taxi)" data-cost=""><td>Malachi Fields (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Skyler Bell (Taxi)" data-cost=""><td>Skyler Bell (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="Jack Endries (Taxi)" data-cost=""><td>Jack Endries (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="AveryGoodrich" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>996.5</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="EthanGoodrich">
+            <h3>EthanGoodrich</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Bo Nix" data-cost="91.5"><td>Bo Nix</td><td>91.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Brock Purdy" data-cost="50.5"><td>Brock Purdy</td><td>50.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Geno Smith" data-cost="49.5"><td>Geno Smith</td><td>49.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Riley Leonard" data-cost="0.5"><td>Riley Leonard</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Braelon Allen" data-cost="0.5"><td>Braelon Allen</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Devin Singletary" data-cost="28.5"><td>Devin Singletary</td><td>28.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Isiah Pacheco" data-cost="0.5"><td>Isiah Pacheco</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Jadarian Price" data-cost="0.5"><td>Jadarian Price</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Kenny Gainwell" data-cost="87.0"><td>Kenny Gainwell</td><td>87.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Rachaad White" data-cost="36.5"><td>Rachaad White</td><td>36.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Travis Etienne" data-cost="85.0"><td>Travis Etienne</td><td>85.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Tyler Allgeier" data-cost="21.0"><td>Tyler Allgeier</td><td>21.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Tyrone Tracy" data-cost="52.5"><td>Tyrone Tracy</td><td>52.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Brandon Aiyuk" data-cost="0.5"><td>Brandon Aiyuk</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="DeVonta Smith" data-cost="62.0"><td>DeVonta Smith</td><td>62.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Devontez Walker" data-cost="0.5"><td>Devontez Walker</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Jakobi Meyers" data-cost="51.5"><td>Jakobi Meyers</td><td>51.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Jordan Addison" data-cost="29.0"><td>Jordan Addison</td><td>29.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Ladd McConkey" data-cost="53.0"><td>Ladd McConkey</td><td>53.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Stefon Diggs" data-cost="69.0"><td>Stefon Diggs</td><td>69.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Tre Tucker" data-cost="45.0"><td>Tre Tucker</td><td>45.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Wan&#x27;Dale Robinson" data-cost="72.0"><td>Wan&#x27;Dale Robinson</td><td>72.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Xavier Worthy" data-cost="7.0"><td>Xavier Worthy</td><td>7.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Dalton Schultz" data-cost="64.0"><td>Dalton Schultz</td><td>64.0</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Isaiah Likely" data-cost="0.5"><td>Isaiah Likely</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Cade Klubnik (Taxi)" data-cost=""><td>Cade Klubnik (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Mark Gronowski (Taxi)" data-cost=""><td>Mark Gronowski (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Max Brosmer (Taxi)" data-cost=""><td>Max Brosmer (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Bhayshul Tuten (Taxi)" data-cost=""><td>Bhayshul Tuten (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Germie Bernard (Taxi)" data-cost=""><td>Germie Bernard (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Jaylin Lane (Taxi)" data-cost=""><td>Jaylin Lane (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="O&#x27;Mega Blake (Taxi)" data-cost=""><td>O&#x27;Mega Blake (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Tai Felton (Taxi)" data-cost=""><td>Tai Felton (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="Nate Boerkircher (Taxi)" data-cost=""><td>Nate Boerkircher (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="EthanGoodrich" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>958.0</span>
+            </div>
+        </div>
+        
+
+        <div class="team-card" data-team="Gorris">
+            <h3>Gorris</h3>
+            <table class="team-roster-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Fernando Mendoza" data-cost="0.5"><td>Fernando Mendoza</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Justin Fields" data-cost="32.0"><td>Justin Fields</td><td>32.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Patrick Mahomes" data-cost="87.5"><td>Patrick Mahomes</td><td>87.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Spencer Rattler" data-cost="2.0"><td>Spencer Rattler</td><td>2.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Tua Tagovailoa" data-cost="43.0"><td>Tua Tagovailoa</td><td>43.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Jahmyr Gibbs" data-cost="97.5"><td>Jahmyr Gibbs</td><td>97.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Kyle Monangai" data-cost="41.0"><td>Kyle Monangai</td><td>41.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Kyren Williams" data-cost="86.0"><td>Kyren Williams</td><td>86.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Rhamondre Stevenson" data-cost="53.5"><td>Rhamondre Stevenson</td><td>53.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Tony Pollard" data-cost="58.0"><td>Tony Pollard</td><td>58.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Andrei Iosivas" data-cost="0.5"><td>Andrei Iosivas</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Chris Godwin" data-cost="0.5"><td>Chris Godwin</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Jerry Jeudy" data-cost="18.0"><td>Jerry Jeudy</td><td>18.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Josh Downs" data-cost="31.5"><td>Josh Downs</td><td>31.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Marvin Harrison" data-cost="23.0"><td>Marvin Harrison</td><td>23.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Nico Collins" data-cost="77.5"><td>Nico Collins</td><td>77.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Tory Horton" data-cost="0.5"><td>Tory Horton</td><td>0.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Cade Otton" data-cost="35.0"><td>Cade Otton</td><td>35.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Hunter Henry" data-cost="61.0"><td>Hunter Henry</td><td>61.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Juwan Johnson" data-cost="67.0"><td>Juwan Johnson</td><td>67.0</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Tyler Warren" data-cost="69.5"><td>Tyler Warren</td><td>69.5</td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Taxi" data-cost=""><td>Taxi</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Quinn Ewers (Taxi)" data-cost=""><td>Quinn Ewers (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Adam Randall (Taxi)" data-cost=""><td>Adam Randall (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Elijah Sarratt (Taxi)" data-cost=""><td>Elijah Sarratt (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Malik Benson (Taxi)" data-cost=""><td>Malik Benson (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Omar Cooper (Taxi)" data-cost=""><td>Omar Cooper (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Jared Wiley (Taxi)" data-cost=""><td>Jared Wiley (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="Max Klare (Taxi)" data-cost=""><td>Max Klare (Taxi)</td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr><tr draggable="true" class="draggable-row" data-team="Gorris" data-player="" data-cost=""><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="team-total-footer">
+                <span>Team Total</span>
+                <span>885.0</span>
+            </div>
+        </div>
+        
+            </div>
+        </div>
+    </div>
+</body>
+</html>
