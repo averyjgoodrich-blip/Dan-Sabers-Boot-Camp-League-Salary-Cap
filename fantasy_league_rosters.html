@@ -168,18 +168,6 @@
         .action-button.hide-button {
             background: #4b5563;
         }
-        .report.trade-mode-locked > :not(.team-roster-section) {
-            opacity: 0.45;
-            pointer-events: none;
-        }
-        .report.trade-mode-locked .team-roster-section > :not(.team-filter-bar) {
-            opacity: 0.45;
-            pointer-events: none;
-        }
-        .report.trade-mode-locked .team-roster-section .team-filter-bar {
-            opacity: 1;
-            pointer-events: auto;
-        }
         .team-summary-table-wrap {
             margin-top: 8px;
             overflow-x: auto;
@@ -376,15 +364,9 @@
         function updateTradeModeGuard() {
             const report = document.querySelector('.report');
             const rosterSection = document.querySelector('.team-roster-section');
-            const seeAllButton = document.getElementById('see-all-teams');
-            const hideAllButton = document.getElementById('hide-all-teams');
-            const selectedTeams = getSelectedTeams();
-            const isTradeReady = selectedTeams.length === 2;
 
-            report.classList.toggle('trade-mode-locked', tradeModeEnabled && !isTradeReady);
-            rosterSection.classList.toggle('trade-mode-locked', tradeModeEnabled && !isTradeReady);
-            seeAllButton.disabled = tradeModeEnabled && !isTradeReady;
-            hideAllButton.disabled = tradeModeEnabled && !isTradeReady;
+            report.classList.toggle('trade-mode-locked', false);
+            rosterSection.classList.toggle('trade-mode-locked', false);
         }
 
         function resetTradeMode() {
@@ -421,19 +403,20 @@
                 return;
             }
 
+            if (getSelectedTeams().length !== 2) {
+                return;
+            }
+
             const sourceCard = row.closest('.team-card');
             if (!sourceCard) {
                 return;
             }
 
-            const teamCards = Array.from(document.querySelectorAll('.team-card'));
-            const sourceIndex = teamCards.findIndex(card => card === sourceCard);
-            if (sourceIndex === -1) {
-                return;
-            }
-
-            const targetCard = teamCards[(sourceIndex + 1) % teamCards.length];
-            if (!targetCard || sourceCard === targetCard) {
+            const selectedTeamNames = new Set(getSelectedTeams());
+            const selectedTeamCards = Array.from(document.querySelectorAll('.team-card'))
+                .filter(card => selectedTeamNames.has(card.dataset.team));
+            const targetCard = selectedTeamCards.find(card => card !== sourceCard);
+            if (!targetCard) {
                 return;
             }
 
